@@ -33,9 +33,14 @@ export default function Dashboard() {
   const [showAddRiderModal, setShowAddRiderModal] = useState(false);
   const [alert, setAlert] = useState({ isOpen: false, title: '', message: '', type: 'error' });
 
-  // Load data
+  // Load data (orders and riders)
   useEffect(() => {
     loadData();
+  }, [selectedBranchId]);
+
+  // Load settings separately (they rarely change, so cache them)
+  useEffect(() => {
+    loadSettings();
   }, [selectedBranchId]);
 
   // Setup WebSocket
@@ -74,8 +79,12 @@ export default function Dashboard() {
 
     ordersChannel.listen('.order.status.changed', (data) => {
       console.log('Order status changed:', data);
-      // Reload data to get the updated order with all its details
-      loadData();
+      // Only reload orders (not riders or settings) to get the updated order details
+      loadOrders();
+      // If order status changed to DELIVERED/FAILED, reload riders too (rider becomes IDLE)
+      if (data.status && ['DELIVERED', 'FAILED'].includes(data.status)) {
+        loadRiders();
+      }
     });
 
     console.log('WebSocket connections established');
@@ -88,19 +97,66 @@ export default function Dashboard() {
     };
   }, []);
 
+  // Selective data loading functions for optimization
+  const loadOrders = async () => {
+    try {
+      const ordersRes = await getOrders(selectedBranchId);
+      console.log('Orders response:', ordersRes.data);
+      setOrders(ordersRes.data.data || []);
+    } catch (error) {
+      console.error('Failed to load orders:', error);
+      setAlert({
+        isOpen: true,
+        title: 'Unable to Load Orders',
+        message: 'We are having trouble loading orders. Please try again.',
+        type: 'error'
+      });
+    }
+  };
+
+  const loadRiders = async () => {
+    try {
+      const ridersRes = await getRiders(selectedBranchId);
+      console.log('Riders response:', ridersRes.data);
+      setRiders(ridersRes.data.data || []);
+    } catch (error) {
+      console.error('Failed to load riders:', error);
+      setAlert({
+        isOpen: true,
+        title: 'Unable to Load Riders',
+        message: 'We are having trouble loading riders. Please try again.',
+        type: 'error'
+      });
+    }
+  };
+
+  const loadSettings = async () => {
+    try {
+      const settingsRes = await getSettings(selectedBranchId);
+      console.log('Settings response:', settingsRes.data);
+      setRestaurantSettings(settingsRes.data.data || {});
+    } catch (error) {
+      console.error('Failed to load settings:', error);
+      setAlert({
+        isOpen: true,
+        title: 'Unable to Load Settings',
+        message: 'We are having trouble loading settings. Please try again.',
+        type: 'error'
+      });
+    }
+  };
+
   const loadData = async () => {
     try {
-      const [ridersRes, ordersRes, settingsRes] = await Promise.all([
+      // Load orders and riders in parallel (settings loaded separately)
+      const [ridersRes, ordersRes] = await Promise.all([
         getRiders(selectedBranchId),
         getOrders(selectedBranchId),
-        getSettings(selectedBranchId),
       ]);
       console.log('Riders response:', ridersRes.data);
       console.log('Orders response:', ordersRes.data);
-      console.log('Settings response:', settingsRes.data);
       setRiders(ridersRes.data.data || []);
       setOrders(ordersRes.data.data || []);
-      setRestaurantSettings(settingsRes.data.data || {});
     } catch (error) {
       console.error('Failed to load data:', error);
       setAlert({
@@ -115,11 +171,29 @@ export default function Dashboard() {
   };
 
   const handleAssignOrder = async (orderId, riderId) => {
+    // Find rider info for optimistic update
+    const rider = riders.find(r => r.id === riderId);
+
+    // Optimistically update both orders and riders in local state
+    setOrders(prev => prev.map(order =>
+      order.id === orderId
+        ? { ...order, rider_id: riderId, rider, status: 'ASSIGNED' }
+        : order
+    ));
+
+    setRiders(prev => prev.map(r =>
+      r.id === riderId
+        ? { ...r, status: 'BUSY' }
+        : r
+    ));
+
     try {
       await assignOrder(orderId, riderId);
-      await loadData(); // Reload to get updated data
+      // Success - no need to reload, WebSocket will sync if needed
     } catch (error) {
       console.error('Failed to assign order:', error);
+      // On error, reload both orders and riders to get correct state
+      await Promise.all([loadOrders(), loadRiders()]);
       setAlert({
         isOpen: true,
         title: 'Unable to Assign Order',
@@ -130,11 +204,24 @@ export default function Dashboard() {
   };
 
   const handleUpdateOrderStatus = async (orderId, status, reason) => {
+    // Optimistically update the order status in local state
+    setOrders(prev => prev.map(order =>
+      order.id === orderId
+        ? { ...order, status, updated_at: new Date().toISOString() }
+        : order
+    ));
+
     try {
       await updateOrderStatus(orderId, status, reason);
-      await loadData(); // Reload to get updated data
+      // Success - WebSocket will handle syncing if needed
+      // Only reload riders if order is completed (frees up the rider)
+      if (['DELIVERED', 'FAILED'].includes(status)) {
+        await loadRiders();
+      }
     } catch (error) {
       console.error('Failed to update order status:', error);
+      // On error, reload orders to get the correct state
+      await loadOrders();
       setAlert({
         isOpen: true,
         title: 'Unable to Update Status',
@@ -155,7 +242,8 @@ export default function Dashboard() {
   const handleCreateOrder = async (orderData) => {
     try {
       await createOrder(orderData);
-      await loadData(); // Reload to get updated data
+      // Only reload orders, not riders or settings
+      await loadOrders();
     } catch (error) {
       throw error; // Let the modal handle the error display
     }
@@ -164,7 +252,8 @@ export default function Dashboard() {
   const handleCreateRider = async (riderData) => {
     try {
       await createRider(riderData);
-      await loadData(); // Reload to get updated data
+      // Only reload riders, not orders or settings
+      await loadRiders();
     } catch (error) {
       throw error; // Let the modal handle the error display
     }
