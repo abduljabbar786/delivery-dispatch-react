@@ -217,18 +217,18 @@ export default function Dashboard() {
       <Sidebar />
 
       {/* Main Content Area */}
-      <div className="flex-1 ml-60">
+      <div className="flex-1 lg:ml-60">
         <header className="bg-white shadow-md">
-        <div className="px-6 py-3 flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <Logo className="h-10 w-10" textClassName="text-xl" />
-            <div className="border-l border-gray-300 h-8 mx-2"></div>
+        <div className="px-4 sm:px-6 py-3 flex justify-between items-center ml-14 lg:ml-0">
+          <div className="flex items-center space-x-2 sm:space-x-4 overflow-x-auto">
+            <Logo className="h-8 w-8 sm:h-10 sm:w-10" textClassName="text-lg sm:text-xl" />
+            <div className="hidden sm:block border-l border-gray-300 h-8 mx-2"></div>
             <BranchSelector
               selectedBranchId={selectedBranchId}
               onBranchChange={setSelectedBranchId}
             />
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <div className="flex items-center space-x-2">
               <div className="hidden sm:block text-right">
                 <p className="text-sm font-medium text-gray-900">{user?.name}</p>
@@ -240,7 +240,7 @@ export default function Dashboard() {
             </div>
             <button
               onClick={logout}
-              className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white text-sm font-medium rounded-lg hover:from-red-600 hover:to-red-700 transition-all shadow-sm hover:shadow-md"
+              className="px-3 sm:px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:from-red-600 hover:to-red-700 transition-all shadow-sm hover:shadow-md"
             >
               Logout
             </button>
@@ -249,12 +249,12 @@ export default function Dashboard() {
       </header>
 
       {/* Date Time Header */}
-      <div className="px-6 pt-4">
+      <div className="px-4 sm:px-6 pt-4">
         <DateTimeHeader restaurantName={restaurantSettings?.restaurant_name || 'Restaurant'} />
       </div>
 
       {/* Stats */}
-      <div className="px-6 py-4">
+      <div className="px-4 sm:px-6 py-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-white p-4 rounded-lg shadow">
             <p className="text-sm text-gray-600">Active Orders</p>
@@ -280,9 +280,9 @@ export default function Dashboard() {
       </div>
 
       {/* Tabs */}
-      <div className="px-6">
-        <div className="border-b border-gray-200 flex justify-between items-center">
-          <nav className="-mb-px flex space-x-8">
+      <div className="px-4 sm:px-6">
+        <div className="border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+          <nav className="-mb-px flex space-x-4 sm:space-x-8 overflow-x-auto w-full sm:w-auto">
             {['map', 'orders', 'riders'].map((tab) => (
               <button
                 key={tab}
@@ -297,31 +297,33 @@ export default function Dashboard() {
               </button>
             ))}
           </nav>
-          <div className="flex space-x-3">
+          <div className="flex space-x-2 sm:space-x-3 w-full sm:w-auto pb-2 sm:pb-0">
             <button
               onClick={() => setShowAddRiderModal(true)}
-              className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white text-sm font-medium rounded-lg hover:from-green-600 hover:to-green-700 transition-all shadow-sm hover:shadow-md flex items-center space-x-2"
+              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:from-green-600 hover:to-green-700 transition-all shadow-sm hover:shadow-md flex items-center justify-center space-x-1 sm:space-x-2"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              <span>Add Rider</span>
+              <span className="hidden sm:inline">Add Rider</span>
+              <span className="sm:hidden">Rider</span>
             </button>
             <button
               onClick={() => setShowCreateOrderModal(true)}
-              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-sm hover:shadow-md flex items-center space-x-2"
+              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-sm hover:shadow-md flex items-center justify-center space-x-1 sm:space-x-2"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              <span>Create Order</span>
+              <span className="hidden sm:inline">Create Order</span>
+              <span className="sm:hidden">Order</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="px-6 py-4">
+      <div className="px-4 sm:px-6 py-4">
         {activeTab === 'map' && (
           <div className="bg-white rounded-lg shadow">
             <Map riders={riders} orders={activeOrders} />

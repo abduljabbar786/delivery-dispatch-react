@@ -13,10 +13,17 @@ export default function BranchSelector({ selectedBranchId, onBranchChange }) {
     try {
       setLoading(true);
       const response = await getBranches();
-      const activeBranches = response.data.filter(b => b.is_active);
+
+      // Handle different possible response structures
+      const branchesData = response.data.data || response.data || [];
+      const branchesArray = Array.isArray(branchesData) ? branchesData : [];
+      const activeBranches = branchesArray.filter(b => b.is_active);
+
+      console.log('BranchSelector - Loaded branches:', branchesArray);
       setBranches(activeBranches);
     } catch (error) {
       console.error('Failed to load branches:', error);
+      setBranches([]);
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getOrders, getSettings } from '../services/api';
+import { getOrders, getSettings, getBranches } from '../services/api';
 import Sidebar from '../components/Sidebar';
 import Logo from '../components/Logo';
 import AlertDialog from '../components/AlertDialog';
@@ -10,12 +10,14 @@ export default function OrdersHistory() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [restaurantSettings, setRestaurantSettings] = useState(null);
+  const [branches, setBranches] = useState([]);
   const [alert, setAlert] = useState({ isOpen: false, title: '', message: '', type: 'error' });
 
   // Filter states
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [dateFilter, setDateFilter] = useState('all'); // all, today, week, month
+  const [branchFilter, setBranchFilter] = useState('all');
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -27,12 +29,18 @@ export default function OrdersHistory() {
 
   const loadData = async () => {
     try {
-      const [ordersRes, settingsRes] = await Promise.all([
+      const [ordersRes, settingsRes, branchesRes] = await Promise.all([
         getOrders(),
         getSettings(),
+        getBranches(),
       ]);
       setOrders(ordersRes.data.data || []);
       setRestaurantSettings(settingsRes.data.data || {});
+
+      // Handle different possible response structures for branches
+      const branchesData = branchesRes.data.data || branchesRes.data || [];
+      console.log('Loaded branches:', branchesData);
+      setBranches(Array.isArray(branchesData) ? branchesData : []);
     } catch (error) {
       console.error('Failed to load data:', error);
       setAlert({
@@ -61,6 +69,11 @@ export default function OrdersHistory() {
       return false;
     }
 
+    // Branch filter
+    if (branchFilter !== 'all' && order.branch_id !== parseInt(branchFilter)) {
+      return false;
+    }
+
     // Search filter (by order ID or customer name)
     if (searchQuery && !order.id.toString().includes(searchQuery) &&
         !order.customer_name?.toLowerCase().includes(searchQuery.toLowerCase()) &&
@@ -70,14 +83,32 @@ export default function OrdersHistory() {
 
     // Date filter
     if (dateFilter !== 'all') {
-      const orderDate = new Date(order.created_at);
-      const now = new Date();
-      const diffTime = Math.abs(now - orderDate);
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (!order.created_at) return false; // Exclude orders without created_at
 
-      if (dateFilter === 'today' && diffDays > 1) return false;
-      if (dateFilter === 'week' && diffDays > 7) return false;
-      if (dateFilter === 'month' && diffDays > 30) return false;
+      const orderDate = new Date(order.created_at);
+
+      // Validate date
+      if (isNaN(orderDate.getTime())) return false;
+
+      const now = new Date();
+
+      if (dateFilter === 'today') {
+        // Check if same calendar day
+        const isToday = orderDate.getDate() === now.getDate() &&
+                       orderDate.getMonth() === now.getMonth() &&
+                       orderDate.getFullYear() === now.getFullYear();
+        if (!isToday) return false;
+      } else if (dateFilter === 'week') {
+        // Last 7 days
+        const diffTime = now.getTime() - orderDate.getTime();
+        const diffDays = diffTime / (1000 * 60 * 60 * 24);
+        if (diffDays > 7 || diffDays < 0) return false;
+      } else if (dateFilter === 'month') {
+        // Last 30 days
+        const diffTime = now.getTime() - orderDate.getTime();
+        const diffDays = diffTime / (1000 * 60 * 60 * 24);
+        if (diffDays > 30 || diffDays < 0) return false;
+      }
     }
 
     return true;
@@ -148,14 +179,14 @@ export default function OrdersHistory() {
       <Sidebar />
 
       {/* Main Content Area */}
-      <div className="flex-1 ml-60">
+      <div className="flex-1 lg:ml-60">
         {/* Header */}
         <header className="bg-white shadow-md">
-          <div className="px-6 py-3 flex justify-between items-center">
-            <div className="flex items-center space-x-4">
-              <Logo className="h-10 w-10" textClassName="text-xl" />
+          <div className="px-4 sm:px-6 py-3 flex justify-between items-center ml-14 lg:ml-0">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <Logo className="h-8 w-8 sm:h-10 sm:w-10" textClassName="text-lg sm:text-xl" />
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <div className="flex items-center space-x-2">
                 <div className="hidden sm:block text-right">
                   <p className="text-sm font-medium text-gray-900">{user?.name}</p>
@@ -167,7 +198,7 @@ export default function OrdersHistory() {
               </div>
               <button
                 onClick={logout}
-                className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white text-sm font-medium rounded-lg hover:from-red-600 hover:to-red-700 transition-all shadow-sm hover:shadow-md"
+                className="px-3 sm:px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:from-red-600 hover:to-red-700 transition-all shadow-sm hover:shadow-md"
               >
                 Logout
               </button>
@@ -176,13 +207,13 @@ export default function OrdersHistory() {
         </header>
 
         {/* Page Title */}
-        <div className="px-6 pt-6">
-          <h1 className="text-3xl font-bold text-gray-900">Orders History</h1>
-          <p className="text-gray-600 mt-1">View and manage all historical orders</p>
+        <div className="px-4 sm:px-6 pt-4 sm:pt-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Orders History</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">View and manage all historical orders</p>
         </div>
 
         {/* Stats Cards */}
-        <div className="px-6 py-4">
+        <div className="px-4 sm:px-6 py-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-blue-500">
               <div className="flex items-center justify-between">
@@ -243,10 +274,10 @@ export default function OrdersHistory() {
         </div>
 
         {/* Filters */}
-        <div className="px-6 py-4">
+        <div className="px-4 sm:px-6 py-4">
           <div className="bg-white p-4 rounded-lg shadow-md">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Filters</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Search Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -287,6 +318,28 @@ export default function OrdersHistory() {
                 </select>
               </div>
 
+              {/* Branch Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Branch
+                </label>
+                <select
+                  value={branchFilter}
+                  onChange={(e) => {
+                    setBranchFilter(e.target.value);
+                    setCurrentPage(1); // Reset to first page on filter change
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">All Branches</option>
+                  {branches.map((branch) => (
+                    <option key={branch.id} value={branch.id}>
+                      {branch.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Date Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -320,6 +373,7 @@ export default function OrdersHistory() {
                   setStatusFilter('all');
                   setSearchQuery('');
                   setDateFilter('all');
+                  setBranchFilter('all');
                   setCurrentPage(1);
                 }}
                 className="px-4 py-2 bg-gray-200 text-gray-800 text-sm rounded-md hover:bg-gray-300 transition-colors"
@@ -331,7 +385,7 @@ export default function OrdersHistory() {
         </div>
 
         {/* Orders Table */}
-        <div className="px-6 py-4">
+        <div className="px-4 sm:px-6 py-4">
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
@@ -350,6 +404,9 @@ export default function OrdersHistory() {
                       Address
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Branch
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Rider
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -363,7 +420,7 @@ export default function OrdersHistory() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {currentOrders.length === 0 ? (
                     <tr>
-                      <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan="8" className="px-6 py-8 text-center text-gray-500">
                         No orders found matching the selected filters
                       </td>
                     </tr>
@@ -381,6 +438,9 @@ export default function OrdersHistory() {
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
                           {order.delivery_address || 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {order.branch?.name || 'N/A'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {order.rider?.name || 'Unassigned'}

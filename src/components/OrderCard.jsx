@@ -6,6 +6,8 @@ export default function OrderCard({ order, riders = [], onAssign, onUpdateStatus
   const [reason, setReason] = useState('');
   const [showAssign, setShowAssign] = useState(false);
   const [showStatus, setShowStatus] = useState(false);
+  const [isAssigning, setIsAssigning] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const statusColors = {
     UNASSIGNED: 'bg-gray-100 text-gray-800',
@@ -23,18 +25,32 @@ export default function OrderCard({ order, riders = [], onAssign, onUpdateStatus
   };
 
   const handleAssign = async () => {
-    if (!selectedRider) return;
-    await onAssign(order.id, parseInt(selectedRider));
-    setShowAssign(false);
-    setSelectedRider('');
+    if (!selectedRider || isAssigning) return;
+    try {
+      setIsAssigning(true);
+      await onAssign(order.id, parseInt(selectedRider));
+      setShowAssign(false);
+      setSelectedRider('');
+    } catch (error) {
+      console.error('Failed to assign rider:', error);
+    } finally {
+      setIsAssigning(false);
+    }
   };
 
   const handleUpdateStatus = async () => {
-    if (!selectedStatus) return;
-    await onUpdateStatus(order.id, selectedStatus, reason || null);
-    setShowStatus(false);
-    setSelectedStatus('');
-    setReason('');
+    if (!selectedStatus || isUpdatingStatus) return;
+    try {
+      setIsUpdatingStatus(true);
+      await onUpdateStatus(order.id, selectedStatus, reason || null);
+      setShowStatus(false);
+      setSelectedStatus('');
+      setReason('');
+    } catch (error) {
+      console.error('Failed to update status:', error);
+    } finally {
+      setIsUpdatingStatus(false);
+    }
   };
 
   // Filter riders: idle and from same branch as the order
@@ -114,17 +130,28 @@ export default function OrderCard({ order, riders = [], onAssign, onUpdateStatus
                 <div className="flex space-x-2">
                   <button
                     onClick={handleAssign}
-                    disabled={!selectedRider}
-                    className="flex-1 px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!selectedRider || isAssigning}
+                    className="flex-1 px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   >
-                    Confirm
+                    {isAssigning ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Assigning...
+                      </>
+                    ) : (
+                      'Confirm'
+                    )}
                   </button>
                   <button
                     onClick={() => {
                       setShowAssign(false);
                       setSelectedRider('');
                     }}
-                    className="flex-1 px-3 py-2 bg-gray-200 text-gray-800 text-sm rounded hover:bg-gray-300 transition-colors"
+                    disabled={isAssigning}
+                    className="flex-1 px-3 py-2 bg-gray-200 text-gray-800 text-sm rounded hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Cancel
                   </button>
@@ -171,10 +198,20 @@ export default function OrderCard({ order, riders = [], onAssign, onUpdateStatus
                 <div className="flex space-x-2">
                   <button
                     onClick={handleUpdateStatus}
-                    disabled={!selectedStatus}
-                    className="flex-1 px-3 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!selectedStatus || isUpdatingStatus}
+                    className="flex-1 px-3 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   >
-                    Confirm
+                    {isUpdatingStatus ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Updating...
+                      </>
+                    ) : (
+                      'Confirm'
+                    )}
                   </button>
                   <button
                     onClick={() => {
@@ -182,7 +219,8 @@ export default function OrderCard({ order, riders = [], onAssign, onUpdateStatus
                       setSelectedStatus('');
                       setReason('');
                     }}
-                    className="flex-1 px-3 py-2 bg-gray-200 text-gray-800 text-sm rounded hover:bg-gray-300 transition-colors"
+                    disabled={isUpdatingStatus}
+                    className="flex-1 px-3 py-2 bg-gray-200 text-gray-800 text-sm rounded hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Cancel
                   </button>

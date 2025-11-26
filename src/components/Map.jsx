@@ -46,14 +46,11 @@ const createBikeIcon = (color) => {
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 };
 
-// Create SVG icon for food/order
-const createFoodIcon = () => {
+// Create simple red circle/dot for order locations
+const createRedDot = () => {
   const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 512 512">
-      <path fill="#F44336" d="M80,176a16,16,0,0,0-16,16V408c0,30.24,25.76,56,56,56H392c30.24,0,56-24.51,56-54.75V192a16,16,0,0,0-16-16Z"/>
-      <path fill="#F44336" d="M160,176V144a16,16,0,0,1,32,0v32Z"/>
-      <path fill="#F44336" d="M320,176V144a16,16,0,0,1,32,0v32Z"/>
-      <path fill="#F44336" d="M456,64H400V48a16,16,0,0,0-16-16H320a16,16,0,0,0-16,16V64H208V48a16,16,0,0,0-16-16H128a16,16,0,0,0-16,16V64H56A24,24,0,0,0,32,88v32a32,32,0,0,0,32,32H96v24a16,16,0,0,0,32,0V152H384v24a16,16,0,0,0,32,0V152h32a32,32,0,0,0,32-32V88A24,24,0,0,0,456,64Z"/>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="8" fill="#DC2626" stroke="#FFFFFF" stroke-width="2"/>
     </svg>
   `;
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
@@ -83,11 +80,11 @@ const getRiderIcon = (status) => {
   };
 };
 
-// Get order marker icon
+// Get order marker icon (red dot)
 const getOrderIcon = () => ({
-  url: createFoodIcon(),
-  scaledSize: new window.google.maps.Size(32, 32),
-  anchor: new window.google.maps.Point(16, 16),
+  url: createRedDot(),
+  scaledSize: new window.google.maps.Size(24, 24),
+  anchor: new window.google.maps.Point(12, 12),
 });
 
 export default function Map({ riders = [], orders = [], center = [31.5204, 74.3587], zoom = 12 }) {
@@ -418,11 +415,8 @@ export default function Map({ riders = [], orders = [], center = [31.5204, 74.35
             <span className="text-xs text-gray-700">Offline Rider</span>
           </div>
           <div className="flex items-center space-x-2">
-            <svg className="w-6 h-6" viewBox="0 0 512 512">
-              <path fill="#F44336" d="M80,176a16,16,0,0,0-16,16V408c0,30.24,25.76,56,56,56H392c30.24,0,56-24.51,56-54.75V192a16,16,0,0,0-16-16Z"/>
-              <path fill="#F44336" d="M160,176V144a16,16,0,0,1,32,0v32Z"/>
-              <path fill="#F44336" d="M320,176V144a16,16,0,0,1,32,0v32Z"/>
-              <path fill="#F44336" d="M456,64H400V48a16,16,0,0,0-16-16H320a16,16,0,0,0-16,16V64H208V48a16,16,0,0,0-16-16H128a16,16,0,0,0-16,16V64H56A24,24,0,0,0,32,88v32a32,32,0,0,0,32,32H96v24a16,16,0,0,0,32,0V152H384v24a16,16,0,0,0,32,0V152h32a32,32,0,0,0,32-32V88A24,24,0,0,0,456,64Z"/>
+            <svg className="w-6 h-6" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="8" fill="#DC2626" stroke="#FFFFFF" strokeWidth="2"/>
             </svg>
             <span className="text-xs text-gray-700">Order Location</span>
           </div>

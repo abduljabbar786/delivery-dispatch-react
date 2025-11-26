@@ -17,14 +17,22 @@ export default function AddRiderModal({ onClose, onCreateRider }) {
     const loadBranches = async () => {
       try {
         const response = await getBranches();
-        const activeBranches = response.data.filter(b => b.is_active);
+
+        // Handle different possible response structures
+        const branchesData = response.data.data || response.data || [];
+        const branchesArray = Array.isArray(branchesData) ? branchesData : [];
+        const activeBranches = branchesArray.filter(b => b.is_active);
+
+        console.log('AddRiderModal - Loaded branches:', branchesArray);
         setBranches(activeBranches);
+
         // Auto-select first branch if only one exists
         if (activeBranches.length === 1) {
           setFormData(prev => ({ ...prev, branch_id: activeBranches[0].id }));
         }
       } catch (error) {
         console.error('Failed to load branches:', error);
+        setBranches([]);
       }
     };
     loadBranches();
@@ -43,18 +51,40 @@ export default function AddRiderModal({ onClose, onCreateRider }) {
     setLoading(true);
 
     try {
-      // Filter out empty fields
+      // Filter out empty fields and convert branch_id to integer
       const riderData = {};
       Object.keys(formData).forEach((key) => {
         if (formData[key] !== '') {
-          riderData[key] = formData[key];
+          // Convert branch_id to integer
+          if (key === 'branch_id') {
+            riderData[key] = parseInt(formData[key], 10);
+          } else {
+            riderData[key] = formData[key];
+          }
         }
       });
 
+      // Set rider's initial location to the branch location
+      const selectedBranch = branches.find(b => b.id === parseInt(formData.branch_id, 10));
+      if (selectedBranch && selectedBranch.latitude && selectedBranch.longitude) {
+        // If branch has location, use it
+        riderData.latest_lat = selectedBranch.latitude;
+        riderData.latest_lng = selectedBranch.longitude;
+      } else {
+        // Fallback to null if branch location not available
+        riderData.latest_lat = null;
+        riderData.latest_lng = null;
+      }
+
+      console.log('Creating rider with data:', riderData);
       await onCreateRider(riderData);
       onClose();
     } catch (error) {
       console.error('Failed to create rider:', error);
+      // Log detailed error for debugging but show generic message to user
+      if (error.response?.data) {
+        console.error('Server error details:', error.response.data);
+      }
       setAlert({
         isOpen: true,
         title: 'Unable to Add Rider',
