@@ -6,6 +6,7 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
@@ -37,6 +38,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
+    setLoggingOut(true);
     try {
       await apiLogout();
     } catch (error) {
@@ -45,11 +47,12 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('auth_token');
       localStorage.removeItem('user');
       setUser(null);
+      setLoggingOut(false);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, loading, loggingOut }}>
       {children}
     </AuthContext.Provider>
   );
