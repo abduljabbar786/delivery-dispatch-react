@@ -384,10 +384,63 @@ export default function OrdersHistory() {
           </div>
         </div>
 
-        {/* Orders Table */}
+        {/* Orders Table/Cards */}
         <div className="px-4 sm:px-6 py-4">
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="overflow-x-auto">
+            {/* Mobile Card View */}
+            <div className="md:hidden">
+              {currentOrders.length === 0 ? (
+                <div className="px-6 py-8 text-center text-gray-500">
+                  No orders found matching the selected filters
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-200">
+                  {currentOrders.map((order) => (
+                    <div key={order.id} className="p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">Order #{order.id}</p>
+                          <p className="text-xs text-gray-500 mt-1">{formatDate(order.created_at)}</p>
+                        </div>
+                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.status)}`}>
+                          {order.status.replace(/_/g, ' ')}
+                        </span>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-start">
+                          <span className="text-xs font-medium text-gray-500 w-20 flex-shrink-0">Customer:</span>
+                          <span className="text-xs text-gray-900">{order.customer_name || 'N/A'}</span>
+                        </div>
+
+                        <div className="flex items-start">
+                          <span className="text-xs font-medium text-gray-500 w-20 flex-shrink-0">Phone:</span>
+                          <span className="text-xs text-gray-900">{order.customer_phone || 'N/A'}</span>
+                        </div>
+
+                        <div className="flex items-start">
+                          <span className="text-xs font-medium text-gray-500 w-20 flex-shrink-0">Address:</span>
+                          <span className="text-xs text-gray-900 line-clamp-2">{order.delivery_address || 'N/A'}</span>
+                        </div>
+
+                        <div className="flex items-start">
+                          <span className="text-xs font-medium text-gray-500 w-20 flex-shrink-0">Branch:</span>
+                          <span className="text-xs text-gray-900">{order.branch?.name || 'N/A'}</span>
+                        </div>
+
+                        <div className="flex items-start">
+                          <span className="text-xs font-medium text-gray-500 w-20 flex-shrink-0">Rider:</span>
+                          <span className="text-xs text-gray-900">{order.rider?.name || 'Unassigned'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>

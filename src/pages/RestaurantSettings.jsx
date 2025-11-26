@@ -23,7 +23,11 @@ export default function RestaurantSettings() {
     const loadBranches = async () => {
       try {
         const response = await getBranches();
-        const activeBranches = response.data.filter(b => b.is_active);
+        // Handle different possible response structures for branches
+        const branchesData = response.data.data || response.data || [];
+        const activeBranches = Array.isArray(branchesData)
+          ? branchesData.filter(b => b.is_active)
+          : [];
         setBranches(activeBranches);
       } catch (error) {
         console.error('Failed to load branches:', error);

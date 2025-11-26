@@ -6,7 +6,8 @@ const libraries = ['places', 'geocoding'];
 const mapContainerStyle = {
   width: '100%',
   height: '100%',
-  minHeight: '600px',
+  minHeight: '500px',
+  maxWidth: '100%',
 };
 
 // Default center: Lahore, Pakistan
@@ -124,7 +125,7 @@ export default function Map({ riders = [], orders = [], center = [31.5204, 74.35
   const mapCenter = center ? { lat: center[0], lng: center[1] } : defaultCenter;
 
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-full w-full max-w-full overflow-hidden">
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
         center={mapCenter}
@@ -336,11 +337,11 @@ export default function Map({ riders = [], orders = [], center = [31.5204, 74.35
       </GoogleMap>
 
       {/* Map Legend */}
-      <div className="absolute bottom-6 right-6 bg-white rounded-lg shadow-lg p-4 z-[1000] border border-gray-200">
-        <h4 className="font-semibold text-sm mb-3 text-gray-900">Map Legend</h4>
-        <div className="space-y-2">
-          <div className="flex items-center space-x-2">
-            <svg fill="#4CAF50" className="w-6 h-6" viewBox="0 0 467.168 467.168" xmlSpace="preserve">
+      <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 md:bottom-6 md:right-6 bg-white rounded-lg shadow-lg p-2 sm:p-3 md:p-4 z-[1000] border border-gray-200 max-w-[160px] sm:max-w-none">
+        <h4 className="font-semibold text-xs sm:text-sm mb-2 sm:mb-3 text-gray-900">Legend</h4>
+        <div className="space-y-1 sm:space-y-2">
+          <div className="flex items-center space-x-1 sm:space-x-2">
+            <svg fill="#4CAF50" className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 flex-shrink-0" viewBox="0 0 467.168 467.168" xmlSpace="preserve">
               <g>
                 <g>
                   <path d="M76.849,210.531C34.406,210.531,0,244.937,0,287.388c0,42.438,34.406,76.847,76.849,76.847
@@ -362,10 +363,10 @@ export default function Map({ riders = [], orders = [], center = [31.5204, 74.35
                 </g>
               </g>
             </svg>
-            <span className="text-xs text-gray-700">Idle Rider</span>
+            <span className="text-[10px] sm:text-xs text-gray-700">Idle Rider</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <svg fill="#FF9800" className="w-6 h-6" viewBox="0 0 467.168 467.168" xmlSpace="preserve">
+          <div className="flex items-center space-x-1 sm:space-x-2">
+            <svg fill="#FF9800" className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 flex-shrink-0" viewBox="0 0 467.168 467.168" xmlSpace="preserve">
               <g>
                 <g>
                   <path d="M76.849,210.531C34.406,210.531,0,244.937,0,287.388c0,42.438,34.406,76.847,76.849,76.847
@@ -387,10 +388,10 @@ export default function Map({ riders = [], orders = [], center = [31.5204, 74.35
                 </g>
               </g>
             </svg>
-            <span className="text-xs text-gray-700">Busy Rider</span>
+            <span className="text-[10px] sm:text-xs text-gray-700">Busy Rider</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <svg fill="#9E9E9E" className="w-6 h-6" viewBox="0 0 467.168 467.168" xmlSpace="preserve">
+          <div className="flex items-center space-x-1 sm:space-x-2">
+            <svg fill="#9E9E9E" className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 flex-shrink-0" viewBox="0 0 467.168 467.168" xmlSpace="preserve">
               <g>
                 <g>
                   <path d="M76.849,210.531C34.406,210.531,0,244.937,0,287.388c0,42.438,34.406,76.847,76.849,76.847
@@ -412,13 +413,13 @@ export default function Map({ riders = [], orders = [], center = [31.5204, 74.35
                 </g>
               </g>
             </svg>
-            <span className="text-xs text-gray-700">Offline Rider</span>
+            <span className="text-[10px] sm:text-xs text-gray-700">Offline Rider</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <svg className="w-6 h-6" viewBox="0 0 24 24">
+          <div className="flex items-center space-x-1 sm:space-x-2">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 flex-shrink-0" viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="8" fill="#DC2626" stroke="#FFFFFF" strokeWidth="2"/>
             </svg>
-            <span className="text-xs text-gray-700">Order Location</span>
+            <span className="text-[10px] sm:text-xs text-gray-700">Order</span>
           </div>
         </div>
       </div>

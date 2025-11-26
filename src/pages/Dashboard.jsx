@@ -309,27 +309,29 @@ export default function Dashboard() {
       <div className="flex-1 lg:ml-60">
         <header className="bg-white shadow-md">
         <div className="px-4 sm:px-6 py-3 flex justify-between items-center ml-14 lg:ml-0">
-          <div className="flex items-center space-x-2 sm:space-x-4 overflow-x-auto">
-            <Logo className="h-8 w-8 sm:h-10 sm:w-10" textClassName="text-lg sm:text-xl" />
+          <div className="flex items-center space-x-2 sm:space-x-4 min-w-0 flex-shrink">
+            <Logo className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0" textClassName="text-lg sm:text-xl" />
             <div className="hidden sm:block border-l border-gray-300 h-8 mx-2"></div>
-            <BranchSelector
-              selectedBranchId={selectedBranchId}
-              onBranchChange={setSelectedBranchId}
-            />
+            <div className="min-w-0 flex-shrink">
+              <BranchSelector
+                selectedBranchId={selectedBranchId}
+                onBranchChange={setSelectedBranchId}
+              />
+            </div>
           </div>
-          <div className="flex items-center space-x-2 sm:space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
             <div className="flex items-center space-x-2">
-              <div className="hidden sm:block text-right">
+              <div className="hidden md:block text-right">
                 <p className="text-sm font-medium text-gray-900">{user?.name}</p>
                 <p className="text-xs text-gray-500">{user?.email}</p>
               </div>
-              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold">
+              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-sm sm:text-base flex-shrink-0">
                 {user?.name ? user.name.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase()}
               </div>
             </div>
             <button
               onClick={logout}
-              className="px-3 sm:px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:from-red-600 hover:to-red-700 transition-all shadow-sm hover:shadow-md"
+              className="px-2 sm:px-3 md:px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:from-red-600 hover:to-red-700 transition-all shadow-sm hover:shadow-md flex-shrink-0"
             >
               Logout
             </button>
@@ -414,7 +416,7 @@ export default function Dashboard() {
       {/* Content */}
       <div className="px-4 sm:px-6 py-4">
         {activeTab === 'map' && (
-          <div className="bg-white rounded-lg shadow">
+          <div className="bg-white rounded-lg shadow overflow-hidden">
             <Map riders={riders} orders={activeOrders} />
           </div>
         )}
