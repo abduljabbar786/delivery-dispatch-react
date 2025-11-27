@@ -337,7 +337,7 @@ export default function Map({ riders = [], orders = [], center = [31.5204, 74.35
       </GoogleMap>
 
       {/* Map Legend */}
-      <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 md:bottom-6 md:right-6 bg-white rounded-lg shadow-lg p-2 sm:p-3 md:p-4 z-[1000] border border-gray-200 max-w-[160px] sm:max-w-none">
+      <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 md:bottom-6 md:left-6 bg-white rounded-lg shadow-lg p-2 sm:p-3 md:p-4 z-[1000] border border-gray-200 max-w-[160px] sm:max-w-none">
         <h4 className="font-semibold text-xs sm:text-sm mb-2 sm:mb-3 text-gray-900">Legend</h4>
         <div className="space-y-1 sm:space-y-2">
           <div className="flex items-center space-x-1 sm:space-x-2">
