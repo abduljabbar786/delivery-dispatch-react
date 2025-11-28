@@ -147,6 +147,8 @@ export default function Dashboard() {
   const loadOrders = async () => {
     try {
       const params = selectedBranchId ? { branch_id: selectedBranchId } : {};
+      // Request all orders without pagination for dashboard view
+      params.per_page = 1000;
       const ordersRes = await getOrders(params);
       console.log('Orders response:', ordersRes.data);
       setOrders(ordersRes.data.data || []);
@@ -197,6 +199,8 @@ export default function Dashboard() {
     try {
       // Load orders and riders in parallel (settings loaded separately)
       const params = selectedBranchId ? { branch_id: selectedBranchId } : {};
+      // Request all orders without pagination for dashboard view
+      params.per_page = 1000;
       const [ridersRes, ordersRes] = await Promise.all([
         getRiders(selectedBranchId),
         getOrders(params),
