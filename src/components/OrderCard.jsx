@@ -114,7 +114,7 @@ export default function OrderCard({ order, riders = [], onAssign, onReassign, on
   });
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow flex flex-col h-full">
+    <div className="bg-white p-4 rounded-lg shadow hover:shadow-lg transition-all duration-300 hover:scale-[1.02] flex flex-col h-full">
       <div className="flex-1">
         <div className="flex justify-between items-start mb-2">
           <div>
@@ -125,9 +125,10 @@ export default function OrderCard({ order, riders = [], onAssign, onReassign, on
             )}
           </div>
           <span
-            className={`px-2 py-1 rounded-full text-xs font-medium ${
+            key={order.status}
+            className={`px-2 py-1 rounded-full text-xs font-medium transition-all duration-300 ${
               statusColors[order.status] || statusColors.UNASSIGNED
-            }`}
+            } animate-pulse-once`}
           >
             {order.status}
           </span>

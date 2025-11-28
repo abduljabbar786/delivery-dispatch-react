@@ -373,8 +373,8 @@ export default function CreateOrderModal({ onClose, onCreateOrder }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4 overflow-y-auto">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full my-8">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4 overflow-y-auto animate-backdrop-fade-in">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full my-8 animate-modal-scale-in">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex justify-between items-center rounded-t-lg">
           <h2 className="text-xl font-semibold text-white">Create New Order</h2>

@@ -60,7 +60,7 @@ export default function Sidebar() {
       {/* Mobile Menu Button - visible only on small screens */}
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-blue-600 text-white rounded-lg shadow-lg hover:bg-blue-700 transition-colors"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-blue-600 text-white rounded-lg shadow-lg hover:bg-blue-700 hover:scale-110 active:scale-95 transition-all duration-200"
         aria-label="Toggle menu"
       >
         {isMobileMenuOpen ? (
@@ -77,7 +77,7 @@ export default function Sidebar() {
       {/* Mobile Overlay */}
       {isMobileMenuOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40 animate-backdrop-fade-in"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
@@ -114,13 +114,13 @@ export default function Sidebar() {
               <button
                 key={item.id}
                 onClick={handleClick}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all group ${
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 group ${
                   isActive
-                    ? 'bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-600'
+                    ? 'bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-600 shadow-sm'
                     : 'text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:text-blue-600'
                 }`}
               >
-                <div className={`transition-colors ${
+                <div className={`transition-all duration-200 group-hover:scale-110 ${
                   isActive ? 'text-blue-600' : 'text-gray-500 group-hover:text-blue-600'
                 }`}>
                   {item.icon}

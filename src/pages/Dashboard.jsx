@@ -146,7 +146,8 @@ export default function Dashboard() {
   // Selective data loading functions for optimization
   const loadOrders = async () => {
     try {
-      const ordersRes = await getOrders(selectedBranchId);
+      const params = selectedBranchId ? { branch_id: selectedBranchId } : {};
+      const ordersRes = await getOrders(params);
       console.log('Orders response:', ordersRes.data);
       setOrders(ordersRes.data.data || []);
     } catch (error) {
@@ -195,9 +196,10 @@ export default function Dashboard() {
   const loadData = async () => {
     try {
       // Load orders and riders in parallel (settings loaded separately)
+      const params = selectedBranchId ? { branch_id: selectedBranchId } : {};
       const [ridersRes, ordersRes] = await Promise.all([
         getRiders(selectedBranchId),
-        getOrders(selectedBranchId),
+        getOrders(params),
       ]);
       console.log('Riders response:', ridersRes.data);
       console.log('Orders response:', ordersRes.data);
@@ -503,13 +505,13 @@ export default function Dashboard() {
       {/* Content */}
       <div className="px-4 sm:px-6 py-4">
         {activeTab === 'map' && (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div key="map-tab" className="bg-white rounded-lg shadow overflow-hidden animate-fade-in">
             <Map riders={riders} orders={activeOrders} />
           </div>
         )}
 
         {activeTab === 'orders' && (
-          <div className="space-y-4">
+          <div key="orders-tab" className="space-y-4 animate-fade-in">
             {/* Filters Section */}
             <div className="bg-white p-4 rounded-lg shadow">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Filters</h3>
@@ -612,7 +614,7 @@ export default function Dashboard() {
         )}
 
         {activeTab === 'riders' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+          <div key="riders-tab" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch animate-fade-in">
             {riders.length === 0 ? (
               <p className="text-gray-600 col-span-full text-center py-8">
                 No riders found

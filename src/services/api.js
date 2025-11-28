@@ -38,8 +38,7 @@ export const login = (email, password) =>
 export const logout = () => api.post('/logout');
 
 // Orders
-export const getOrders = (branchId = null) => {
-  const params = branchId ? { branch_id: branchId } : {};
+export const getOrders = (params = {}) => {
   return api.get('/orders', { params });
 };
 

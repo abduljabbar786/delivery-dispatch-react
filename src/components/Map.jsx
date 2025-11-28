@@ -182,7 +182,7 @@ export default function Map({ riders = [], orders = [], center = [31.5204, 74.35
                   <div className="flex items-center space-x-1">
                     <a
                       href={`tel:${selectedMarker.data.phone}`}
-                      className="p-1.5 bg-blue-600 hover:bg-blue-700 rounded-full text-white transition-colors"
+                      className="p-1.5 bg-blue-600 hover:bg-blue-700 rounded-full text-white transition-all duration-200 hover:scale-110 active:scale-95"
                       title="Call"
                     >
                       <svg className="w-3 h-3 text-white" fill="white" viewBox="0 0 24 24">
@@ -193,7 +193,7 @@ export default function Map({ riders = [], orders = [], center = [31.5204, 74.35
                       href={`https://wa.me/${selectedMarker.data.phone.replace(/\+/g, '').replace(/\s/g, '')}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-1.5 bg-green-600 hover:bg-green-700 rounded-full text-white transition-colors"
+                      className="p-1.5 bg-green-600 hover:bg-green-700 rounded-full text-white transition-all duration-200 hover:scale-110 active:scale-95"
                       title="WhatsApp"
                     >
                       <svg className="w-3 h-3 text-white" fill="white" viewBox="0 0 24 24">

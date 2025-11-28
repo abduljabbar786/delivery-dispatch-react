@@ -72,9 +72,9 @@ export default function Toast({ message, type = 'info', duration = 3000, onClose
 
   return (
     <div
-      className={`${style.bg} ${style.border} border rounded-lg shadow-lg p-4 mb-3 flex items-start space-x-3 min-w-[320px] max-w-md animate-slide-in-right`}
+      className={`${style.bg} ${style.border} border rounded-lg shadow-lg hover:shadow-xl p-4 mb-3 flex items-start space-x-3 min-w-[320px] max-w-md animate-slide-in-right transition-all duration-200`}
     >
-      <div className="flex-shrink-0">
+      <div className="flex-shrink-0 animate-pulse-once">
         <svg
           className={`h-6 w-6 ${style.icon}`}
           fill="none"
@@ -87,7 +87,7 @@ export default function Toast({ message, type = 'info', duration = 3000, onClose
       <div className={`flex-1 ${style.text} text-sm font-medium`}>{message}</div>
       <button
         onClick={onClose}
-        className={`flex-shrink-0 ${style.icon} hover:opacity-75 transition-opacity`}
+        className={`flex-shrink-0 ${style.icon} hover:opacity-75 hover:scale-110 active:scale-95 transition-all duration-150`}
       >
         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
