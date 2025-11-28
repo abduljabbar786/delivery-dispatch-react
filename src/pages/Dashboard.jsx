@@ -109,6 +109,7 @@ export default function Dashboard() {
 
       // Only reload orders (not riders or settings) to get the updated order details
       loadOrders();
+
       // If order status changed to DELIVERED/FAILED, reload riders too (rider becomes IDLE)
       if (data.status && ['DELIVERED', 'FAILED'].includes(data.status)) {
         loadRiders();
