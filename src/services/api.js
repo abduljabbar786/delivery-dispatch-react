@@ -48,6 +48,9 @@ export const createOrder = (orderData) => api.post('/orders', orderData);
 export const assignOrder = (orderId, riderId) =>
   api.post(`/orders/${orderId}/assign`, { rider_id: riderId });
 
+export const reassignOrder = (orderId, riderId) =>
+  api.post(`/orders/${orderId}/reassign`, { rider_id: riderId });
+
 export const updateOrderStatus = (orderId, status, reason = null) =>
   api.post(`/orders/${orderId}/status`, { status, reason });
 

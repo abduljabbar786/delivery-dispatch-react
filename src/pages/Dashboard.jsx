@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getOrders, getRiders, assignOrder, updateOrderStatus, createOrder, createRider, getSettings } from '../services/api';
+import { useToast } from '../contexts/ToastContext';
+import { getOrders, getRiders, assignOrder, reassignOrder, updateOrderStatus, createOrder, createRider, getSettings } from '../services/api';
 import Map from '../components/Map';
 import RiderCard from '../components/RiderCard';
 import RiderLocationModal from '../components/RiderLocationModal';
@@ -15,6 +16,7 @@ import AlertDialog from '../components/AlertDialog';
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
+  const { showSuccess, showInfo, showWarning } = useToast();
   const [riders, setRiders] = useState([]);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -72,6 +74,12 @@ export default function Dashboard() {
           return r;
         })
       );
+
+      // Show toast notification for rider location update
+      const rider = riders.find(r => r.id === data.rider_id);
+      if (rider) {
+        showInfo(`${rider.name}'s location updated`, 2000);
+      }
     });
 
     // Subscribe to order channel
@@ -79,6 +87,26 @@ export default function Dashboard() {
 
     ordersChannel.listen('.order.status.changed', (data) => {
       console.log('Order status changed:', data);
+
+      // Show toast notification based on status change
+      const statusMessages = {
+        'ASSIGNED': `Order ${data.order?.code || data.order_id} assigned to rider`,
+        'PICKED_UP': `Order ${data.order?.code || data.order_id} picked up`,
+        'OUT_FOR_DELIVERY': `Order ${data.order?.code || data.order_id} is out for delivery`,
+        'DELIVERED': `Order ${data.order?.code || data.order_id} delivered successfully`,
+        'FAILED': `Order ${data.order?.code || data.order_id} failed`,
+      };
+
+      const message = statusMessages[data.status] || `Order ${data.order?.code || data.order_id} status changed`;
+
+      if (data.status === 'DELIVERED') {
+        showSuccess(message);
+      } else if (data.status === 'FAILED') {
+        showWarning(message);
+      } else {
+        showInfo(message);
+      }
+
       // Only reload orders (not riders or settings) to get the updated order details
       loadOrders();
       // If order status changed to DELIVERED/FAILED, reload riders too (rider becomes IDLE)
@@ -198,6 +226,47 @@ export default function Dashboard() {
         isOpen: true,
         title: 'Unable to Assign Order',
         message: 'We encountered an issue while assigning the order to the rider. Please try again.',
+        type: 'error'
+      });
+    }
+  };
+
+  const handleReassignOrder = async (orderId, riderId) => {
+    // Find the order and the new rider
+    const order = orders.find(o => o.id === orderId);
+    const oldRiderId = order?.assigned_rider_id;
+    const newRider = riders.find(r => r.id === riderId);
+
+    // Optimistically update both orders and riders in local state
+    setOrders(prev => prev.map(o =>
+      o.id === orderId
+        ? { ...o, assigned_rider_id: riderId, rider: newRider, status: 'ASSIGNED' }
+        : o
+    ));
+
+    setRiders(prev => prev.map(r => {
+      // Set new rider to BUSY
+      if (r.id === riderId) {
+        return { ...r, status: 'BUSY' };
+      }
+      // Set old rider to IDLE (optimistically, will be corrected by API if they have other orders)
+      if (r.id === oldRiderId) {
+        return { ...r, status: 'IDLE' };
+      }
+      return r;
+    }));
+
+    try {
+      await reassignOrder(orderId, riderId);
+      // Success - no need to reload, WebSocket will sync if needed
+    } catch (error) {
+      console.error('Failed to reassign order:', error);
+      // On error, reload both orders and riders to get correct state
+      await Promise.all([loadOrders(), loadRiders()]);
+      setAlert({
+        isOpen: true,
+        title: 'Unable to Reassign Order',
+        message: 'We encountered an issue while reassigning the order to the rider. Please try again.',
         type: 'error'
       });
     }
@@ -515,6 +584,7 @@ export default function Dashboard() {
                     order={order}
                     riders={riders}
                     onAssign={handleAssignOrder}
+                    onReassign={handleReassignOrder}
                     onUpdateStatus={handleUpdateOrderStatus}
                   />
                 ))

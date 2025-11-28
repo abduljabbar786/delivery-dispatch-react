@@ -1,13 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export default function OrderCard({ order, riders = [], onAssign, onUpdateStatus }) {
+export default function OrderCard({ order, riders = [], onAssign, onReassign, onUpdateStatus }) {
   const [selectedRider, setSelectedRider] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [reason, setReason] = useState('');
   const [showAssign, setShowAssign] = useState(false);
+  const [showReassign, setShowReassign] = useState(false);
   const [showStatus, setShowStatus] = useState(false);
   const [isAssigning, setIsAssigning] = useState(false);
+  const [isReassigning, setIsReassigning] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
+  // Close forms when order status changes to a state that doesn't support that action
+  useEffect(() => {
+    // Close assign form if order is no longer UNASSIGNED
+    if (showAssign && order.status !== 'UNASSIGNED') {
+      setShowAssign(false);
+      setSelectedRider('');
+    }
+
+    // Close reassign form if order is no longer in a reassignable state
+    if (showReassign && !['ASSIGNED', 'PICKED_UP', 'OUT_FOR_DELIVERY'].includes(order.status)) {
+      setShowReassign(false);
+      setSelectedRider('');
+    }
+
+    // Close status form if order status doesn't have available next statuses
+    if (showStatus && !availableStatuses[order.status]) {
+      setShowStatus(false);
+      setSelectedStatus('');
+      setReason('');
+    }
+  }, [order.status, showAssign, showReassign, showStatus]);
 
   const statusColors = {
     UNASSIGNED: 'bg-gray-100 text-gray-800',
@@ -38,6 +62,20 @@ export default function OrderCard({ order, riders = [], onAssign, onUpdateStatus
     }
   };
 
+  const handleReassign = async () => {
+    if (!selectedRider || isReassigning) return;
+    try {
+      setIsReassigning(true);
+      await onReassign(order.id, parseInt(selectedRider));
+      setShowReassign(false);
+      setSelectedRider('');
+    } catch (error) {
+      console.error('Failed to reassign rider:', error);
+    } finally {
+      setIsReassigning(false);
+    }
+  };
+
   const handleUpdateStatus = async () => {
     if (!selectedStatus || isUpdatingStatus) return;
     try {
@@ -56,6 +94,18 @@ export default function OrderCard({ order, riders = [], onAssign, onUpdateStatus
   // Filter riders: idle and from same branch as the order
   const idleRiders = riders.filter((r) => {
     if (r.status !== 'IDLE') return false;
+    // If order has branch_id, only show riders from the same branch
+    if (order.branch_id && r.branch_id && order.branch_id !== r.branch_id) {
+      return false;
+    }
+    return true;
+  });
+
+  // Filter riders for reassignment: idle, not currently assigned, same branch
+  const availableRidersForReassign = riders.filter((r) => {
+    if (r.status !== 'IDLE') return false;
+    // Don't show currently assigned rider
+    if (r.id === order.assigned_rider_id) return false;
     // If order has branch_id, only show riders from the same branch
     if (order.branch_id && r.branch_id && order.branch_id !== r.branch_id) {
       return false;
@@ -103,18 +153,13 @@ export default function OrderCard({ order, riders = [], onAssign, onUpdateStatus
         )}
       </div>
 
-      <div className="mt-3 space-y-2 pt-3 border-t border-gray-200">
-        {order.status === 'UNASSIGNED' && (
-          <>
-            {!showAssign ? (
-              <button
-                onClick={() => setShowAssign(true)}
-                className="w-full px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
-              >
-                Assign Rider
-              </button>
-            ) : (
-              <div className="space-y-2">
+      <div className="mt-3 pt-3 border-t border-gray-200">
+        {/* Show action buttons or forms */}
+        {(showAssign || showReassign || showStatus) ? (
+          <div className="space-y-2">
+            {/* Assign Form */}
+            {showAssign && (
+              <>
                 <select
                   value={selectedRider}
                   onChange={(e) => setSelectedRider(e.target.value)}
@@ -156,29 +201,66 @@ export default function OrderCard({ order, riders = [], onAssign, onUpdateStatus
                     Cancel
                   </button>
                 </div>
-              </div>
+              </>
             )}
-          </>
-        )}
 
-        {availableStatuses[order.status] && (
-          <>
-            {!showStatus ? (
-              <button
-                onClick={() => setShowStatus(true)}
-                className="w-full px-3 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
-              >
-                Update Status
-              </button>
-            ) : (
-              <div className="space-y-2">
+            {/* Reassign Form */}
+            {showReassign && (
+              <>
+                <select
+                  value={selectedRider}
+                  onChange={(e) => setSelectedRider(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                >
+                  <option value="">Select a rider</option>
+                  {availableRidersForReassign.map((rider) => (
+                    <option key={rider.id} value={rider.id}>
+                      {rider.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={handleReassign}
+                    disabled={!selectedRider || isReassigning}
+                    className="flex-1 px-3 py-2 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  >
+                    {isReassigning ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Reassigning...
+                      </>
+                    ) : (
+                      'Confirm'
+                    )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowReassign(false);
+                      setSelectedRider('');
+                    }}
+                    disabled={isReassigning}
+                    className="flex-1 px-3 py-2 bg-gray-200 text-gray-800 text-sm rounded hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Update Status Form */}
+            {showStatus && (
+              <>
                 <select
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                 >
                   <option value="">Select status</option>
-                  {availableStatuses[order.status].map((status) => (
+                  {(availableStatuses[order.status] || []).map((status) => (
                     <option key={status} value={status}>
                       {status.replace(/_/g, ' ')}
                     </option>
@@ -225,9 +307,39 @@ export default function OrderCard({ order, riders = [], onAssign, onUpdateStatus
                     Cancel
                   </button>
                 </div>
-              </div>
+              </>
             )}
-          </>
+          </div>
+        ) : (
+          /* Action Buttons - Side by Side */
+          <div className="flex flex-wrap gap-2">
+            {order.status === 'UNASSIGNED' && (
+              <button
+                onClick={() => setShowAssign(true)}
+                className="flex-1 min-w-[120px] px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+              >
+                Assign Rider
+              </button>
+            )}
+
+            {['ASSIGNED', 'PICKED_UP', 'OUT_FOR_DELIVERY'].includes(order.status) && (
+              <button
+                onClick={() => setShowReassign(true)}
+                className="flex-1 min-w-[120px] px-3 py-2 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700 transition-colors"
+              >
+                Reassign
+              </button>
+            )}
+
+            {availableStatuses[order.status] && (
+              <button
+                onClick={() => setShowStatus(true)}
+                className="flex-1 min-w-[120px] px-3 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
+              >
+                Update Status
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>
