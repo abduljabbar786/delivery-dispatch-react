@@ -32,10 +32,24 @@ window.Echo.connector.pusher.connection.bind('connected', () => {
 
 window.Echo.connector.pusher.connection.bind('error', (err) => {
     console.error('WebSocket connection error:', err);
+    console.error('Error details:', JSON.stringify(err, null, 2));
 });
 
 window.Echo.connector.pusher.connection.bind('disconnected', () => {
     console.warn('WebSocket disconnected');
+});
+
+window.Echo.connector.pusher.connection.bind('failed', () => {
+    console.error('WebSocket connection failed permanently');
+});
+
+window.Echo.connector.pusher.connection.bind('unavailable', () => {
+    console.error('WebSocket unavailable');
+});
+
+// Log connection state changes
+window.Echo.connector.pusher.connection.bind('state_change', (states) => {
+    console.log('WebSocket state changed:', states.previous, '->', states.current);
 });
 
 export default window.Echo;
