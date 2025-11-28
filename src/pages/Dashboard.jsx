@@ -85,6 +85,23 @@ export default function Dashboard() {
     // Subscribe to order channel
     const ordersChannel = window.Echo.channel('orders');
 
+    console.log('Orders channel subscribed:', ordersChannel);
+
+    // Listen for subscription success
+    ordersChannel.subscribed(() => {
+      console.log('Successfully subscribed to orders channel');
+    });
+
+    // Listen for subscription errors
+    ordersChannel.error((error) => {
+      console.error('Error subscribing to orders channel:', error);
+    });
+
+    // Listen for ALL events on this channel (for debugging)
+    ordersChannel.listenToAll((eventName, data) => {
+      console.log('Received event on orders channel:', eventName, data);
+    });
+
     ordersChannel.listen('.order.status.changed', (data) => {
       console.log('Order status changed:', data);
 

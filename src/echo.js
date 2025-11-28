@@ -6,6 +6,7 @@ window.Pusher = Pusher;
 console.log('Key:', import.meta.env.VITE_REVERB_APP_KEY);
 console.log('Host:', import.meta.env.VITE_REVERB_HOST);
 console.log('Port:', import.meta.env.VITE_REVERB_PORT);
+console.log('Scheme:', import.meta.env.VITE_REVERB_SCHEME);
 
 window.Echo = new Echo({
     broadcaster: 'reverb',
@@ -22,6 +23,19 @@ window.Echo = new Echo({
             Accept: 'application/json',
         },
     },
+});
+
+// Add connection event listeners for debugging
+window.Echo.connector.pusher.connection.bind('connected', () => {
+    console.log('WebSocket connected successfully');
+});
+
+window.Echo.connector.pusher.connection.bind('error', (err) => {
+    console.error('WebSocket connection error:', err);
+});
+
+window.Echo.connector.pusher.connection.bind('disconnected', () => {
+    console.warn('WebSocket disconnected');
 });
 
 export default window.Echo;
